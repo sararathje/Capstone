@@ -1,13 +1,12 @@
 #include "DualVNH5019MotorShield.h"
-
-//this is a change
+//drive on floor (non magnetic)
 
 DualVNH5019MotorShield md;
 
 const int xInput1 = A4; //X-Axis of Joystick 1 -- not used
 const int xInput2 = A3; //X-Axis of Joystick 2 -- not used
-const int yInput1 = A5; //Y-Axis of Joystick 1
-const int yInput2 = A2; //Y-Axis of Joystick 2
+const int yInput1 = A2; //Y-Axis of Joystick 1
+const int yInput2 = A5; //Y-Axis of Joystick 2
 
 void setup() {
   md.init();                 //Initialize motor drive shield
@@ -21,7 +20,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-    int yValue1 = analogRead(yInput1); // Get y-axis position of Joystick 1
+  int yValue1 = analogRead(yInput1); // Get y-axis position of Joystick 1
   int yValue2 = analogRead(yInput2); // Get y-axis position of Joystick 2
   
   //print joystick positions
@@ -58,7 +57,7 @@ void loop() {
 
 
 void forwardM1(int yValue){                
-    int motorSpeed = map(yValue, 507, 1023, 0, -150);  // Map the joystick position to a motor speed 
+    int motorSpeed = map(yValue, 507, 1023, 0, -100);  // Map the joystick position to a motor speed 
     md.setM1Speed(motorSpeed);                    // Forward motor speed values are from 0 to
                                                   // 400 with 400 being the fastest
    Serial.print(" speed1: ");Serial.println(motorSpeed);
@@ -66,7 +65,7 @@ void forwardM1(int yValue){
 }
 
 void forwardM2(int yValue){
-    int motorSpeed = map(yValue, 507, 1023, 0, -150);
+    int motorSpeed = map(yValue, 507, 1023, 0, -100);
     md.setM2Speed(motorSpeed);
     Serial.print("speed2: "); Serial.println(motorSpeed); 
    
