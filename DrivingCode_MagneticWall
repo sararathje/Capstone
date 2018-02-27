@@ -1,0 +1,103 @@
+#include "DualVNH5019MotorShield.h"
+
+//driving code for driving on a magnetic wall
+//currently, this only works if orientation is tether UP or driving SIDEWAYS along the wall 
+//if tether is DOWN you will drive extra fast down the wall
+
+DualVNH5019MotorShield md;
+
+const int xInput1 = A4; //X-Axis of Joystick 1 -- not used
+const int xInput2 = A3; //X-Axis of Joystick 2 -- not used
+const int yInput1 = A2; //Y-Axis of Joystick 1
+const int yInput2 = A5; //Y-Axis of Joystick 2
+
+void setup() {
+  md.init();                 //Initialize motor drive shield
+  pinMode(xInput1, INPUT);   //Setup Joystick 1
+  pinMode(yInput1, INPUT);
+  pinMode(xInput2, INPUT);   //Setup Joystick 2
+  pinMode(yInput2, INPUT);
+  Serial.begin(9600);
+// specify pwm?
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  int yValue1 = analogRead(yInput1); // Get y-axis position of Joystick 1
+  int yValue2 = analogRead(yInput2); // Get y-axis position of Joystick 2
+  
+  //print joystick positions
+  Serial.print("y1: "); Serial.print(yValue1); Serial.print(" y2: ");Serial.println(yValue2);
+  
+  //print currents
+  Serial.print("M1 current: ");
+  Serial.print(md.getM1CurrentMilliamps());
+  Serial.print(" M2 Current: ");
+  Serial.println(md.getM2CurrentMilliamps());
+  
+  stopIfFault();  //Check for fault in motors
+  
+  if(yValue1 > 515)      //Check y-axis position of joystick 1 and 
+    forwardM1(yValue1);  //decide whether to run forward, backwards
+  else if(yValue1 < 450) //or not move
+    backwardM1(yValue1); 
+  else
+    md.setM1Speed(50);   //remain stationary while there is no user input ?? will this be okay for turning? we need to test
+
+  if(yValue2 > 510)      //Check y-axis position of joystick 1 and 
+    forwardM2(yValue2); //decide whether to run forward, backwards
+  else if(yValue2 < 430) //or not move
+    backwardM2(yValue2); 
+  else
+    md.setM2Speed(50);  //remain stationary while there is no user input
+  
+  delay(100); //original delay value from magnet group
+  //delay(2000); 
+
+}
+
+
+
+
+void forwardM1(int yValue){                
+    int motorSpeed = map(yValue, 507, 1023, 0, 150);  // Map the joystick position to a motor speed 
+    md.setM1Speed(motorSpeed);                    // Forward motor speed values are from 0 to
+                                                  // 400 with 400 being the fastest
+   Serial.print(" speed1: ");Serial.println(motorSpeed);
+
+}
+
+void forwardM2(int yValue){
+    int motorSpeed = map(yValue, 507, 1023, 0, 150);
+    md.setM2Speed(motorSpeed);
+    Serial.print("speed2: "); Serial.println(motorSpeed); 
+   
+}
+
+void backwardM1(int yValue){
+  int motorSpeed = map(yValue, 507, 0, 0, -150); // Backward motor speed values are from 0 to 
+  md.setM1Speed(motorSpeed);                     // -400 with -400 being the fastest
+  Serial.print(" speed1: ");Serial.println(motorSpeed);
+
+}
+
+void backwardM2(int yValue){
+  int motorSpeed = map(yValue, 507, 0, 0, -150);
+  md.setM2Speed(motorSpeed);
+  Serial.print(" speed2: ");Serial.println(motorSpeed);
+
+}
+
+void stopIfFault()     
+{
+  if (md.getM1Fault())
+  {
+    Serial.println("M1 fault");
+    while(1);
+  }
+  if (md.getM2Fault())
+  {
+    Serial.println("M2 fault");
+    while(1);
+  }
+}
