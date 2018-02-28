@@ -53,7 +53,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.protocol("WM_DELETE_WINDOW",self._delete_window)
         
         # Create GUI-Video Feed Connection
-        self.cap = cv2.VideoCapture(0) # 0 for laptop camera, 1 for
+        self.cap = cv2.VideoCapture(1) # 0 for laptop camera, 1 for
                                        # external webcam
         self.video_loop() # Receive video feed
         
