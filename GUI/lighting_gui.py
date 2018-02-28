@@ -10,7 +10,7 @@ import sys
 import cv2
 from PIL import Image,ImageTk
 import numpy as np
-import datetime,os,sys
+import datetime,os,sys,platform
 class lighting_GUI(Tk): # Inherit from Tk class (main window)
 
     def __init__(self):
@@ -35,13 +35,19 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.saved_intensity = self.intensityvalue
         
         # Create GUI-Arduino connection
+        for serial_port in ports.comports():
+            if 'Arduino' in serial_port.description:
+                arduino_serial_port = serial_port
+                print("Found Arduino Serial Port: {}".format(arduino_serial_port.description))
+                print("Lighting System Status: Activated")
         try:
-            self.board = f.Arduino('/dev/ttyACM0')
+            self.board = f.Arduino(str(arduino_serial_port.device))
             self.redpin = self.board.get_pin('d:5:p')
             self.greenpin = self.board.get_pin('d:3:p')
             self.bluepin = self.board.get_pin('d:6:p')
         except:
-            pass
+            print("No Arduino connected to computer. Lighting System Status: Deactivated")
+            pass       
         
         # Set GUI spacing format
         self.grid()
@@ -55,6 +61,10 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         # Create GUI-Video Feed Connection
         self.cap = cv2.VideoCapture(1) # 0 for laptop camera, 1 for
                                        # external webcam
+        if self.cap:
+            print("Found camera")
+        else:
+            print("No camera detected")
         self.video_loop() # Receive video feed
         
     def create_widgets(self):
@@ -175,6 +185,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         try:
             self.redpin.write(self.redvalue/100.0*self.intensityvalue*0.5/100)#multiplied by 0.75 of intensity so does not reach max
         except:
+            print("Red pin (Arduino Pin 5) INACTIVE")
             pass
 #-------Green Colour Control Methods-----------------------------
     def decrease_greenvalue(self):
@@ -196,6 +207,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         try:
             self.greenpin.write(self.greenvalue/100.0*self.intensityvalue*0.5/100.0) #multiplied by 0.75 of intensity so does not reach max
         except:
+            print("Green pin (Arduino Pin 3) INACTIVE")
             pass
         
 #-------Blue Colour Control Methods-----------------------------
@@ -218,6 +230,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         try:
             self.bluepin.write(self.bluevalue/100.0*self.intensityvalue*0.5/100)#multiplied by 0.75 of intensity so does not reach max
         except:
+            print("Blue pin (Arduino Pin 6) INACTIVE")
             pass
         
 #-------Intensity Control Methods-----------------------------
