@@ -16,7 +16,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
     def __init__(self):
         super().__init__()
         # Set up the main window
-        self.title("SARPS Lighting GUI") # Set GUI title
+        self.title("Lighting GUI") # Set GUI title
         self.screen_width = int(self.winfo_screenwidth() * 0.75)
         self.screen_height = int(self.winfo_screenheight() * 0.75)
         self.geometry(str(self.screen_width) + "x" + 
