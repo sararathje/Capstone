@@ -306,12 +306,12 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         #ts = datetime.datetime.now() # grab the current timestamp
         #filename = "{}.png".format(ts.strftime("%Y-%m-%d_%H-%M-%S"))  # construct filename
         ftypes = [("png file","*.png")]
-        filename = filedialog.asksaveasfile(initialdir = self.output_path,
+        filename = filedialog.asksaveasfilename(initialdir = self.output_path,
                                                     title = "Save file as",
-                                                    filetypes= ftypes)        
-        p = os.path.join(self.output_path, filename.name)  # construct output path
-        self.current_image.save(filename.name, "PNG")  # save image as png file
-        print("[INFO] saved {}".format(filename))       
+                                                    filetypes= ftypes)      
+        filename = filename + ".png"
+        self.current_image.save(filename, "PNG")  # save image as png file
+        print("New image saved: {}".format(filename))       
 
 #---------------Main GUI Application---------------------------  
 
