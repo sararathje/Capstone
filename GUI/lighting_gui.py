@@ -59,7 +59,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.protocol("WM_DELETE_WINDOW",self._delete_window)
         
         # Create GUI-Video Feed Connection
-        self.cap = cv2.VideoCapture(1) # 0 for laptop camera, 1 for
+        self.cap = cv2.VideoCapture(0) # 0 for laptop camera, 1 for
                                        # external webcam
         if self.cap:
             print("Found camera")
@@ -305,12 +305,19 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
     def take_snapshot(self):
         #ts = datetime.datetime.now() # grab the current timestamp
         #filename = "{}.png".format(ts.strftime("%Y-%m-%d_%H-%M-%S"))  # construct filename
+
+        # Grab the current image
+        img_to_save = self.current_image
+
+        # Get flie path
         ftypes = [("png file","*.png")]
         filename = filedialog.asksaveasfilename(initialdir = self.output_path,
                                                     title = "Save file as",
                                                     filetypes= ftypes)      
         filename = filename + ".png"
-        self.current_image.save(filename, "PNG")  # save image as png file
+
+        # save image as png file
+        img_to_save.save(filename, "PNG")
         print("New image saved: {}".format(filename))       
 
 #---------------Main GUI Application---------------------------  
