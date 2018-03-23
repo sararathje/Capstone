@@ -6,7 +6,6 @@ import threading as th
 import warnings
 import serial
 import serial.tools.list_ports as ports
-import sys
 import cv2
 from PIL import Image,ImageTk
 import numpy as np
@@ -59,7 +58,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.protocol("WM_DELETE_WINDOW",self._delete_window)
         
         # Create GUI-Video Feed Connection
-        self.cap = cv2.VideoCapture(0) # 0 for laptop camera, 1 for
+        self.cap = cv2.VideoCapture(1) # 0 for laptop camera, 1 for
                                        # external webcam
         if self.cap:
             print("Found camera")
@@ -162,7 +161,8 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.video_feed.grid(row=0, column=0)
         self.snapshot_btn = Button(self, text="Take Snapshot", command=self.take_snapshot)
         self.snapshot_btn.grid(row=12, column=16, sticky=W, padx=15)
-      
+
+
 
 #========================================================================================================================        
 #----------------Red Colour Control Methods-------------------------
