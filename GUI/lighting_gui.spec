@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['lighting_gui.py'],
-             pathex=['C:\\Users\\Paul\\Desktop\\University Winter 2018\\Capstone\\GUI'],
+             pathex=['C:\\Users\\coles\\Documents\\Capstone\\GUI'],
              binaries=[],
              datas=[],
              hiddenimports=[],
