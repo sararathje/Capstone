@@ -1,0 +1,172 @@
+#include "DualVNH5019MotorShield.h"
+#include <FaBo9Axis_MPU9250.h>
+#include <Wire.h>
+
+DualVNH5019MotorShield md;
+FaBo9Axis fabo_9axis;
+
+//const int xInput1 = A4; //X-Axis of Joystick 1 -- not used
+//const int xInput2 = A3; //X-Axis of Joystick 2 -- not used
+const int yInput1 = A2; //Y-Axis of Joystick 1
+const int yInput2 = A5; //Y-Axis of Joystick 2
+int map_fwd =0;
+int map_bkwd =0;
+
+void setup() {
+  md.init();                 //Initialize motor drive shield
+  //pinMode(xInput1, INPUT);   //Setup Joystick 1
+  pinMode(yInput1, INPUT);
+  //pinMode(xInput2, INPUT);   //Setup Joystick 2
+  pinMode(yInput2, INPUT);
+  Serial.begin(9600);
+
+  Serial.println("RESET");
+  Serial.println();
+
+  Serial.println("configuring accelerometer.");
+
+  if (fabo_9axis.begin()) {
+    Serial.println("configured FaBo 9Axis I2C Brick");
+  } else {
+    Serial.println("device error");
+    while(1);
+  }
+
+}
+
+void loop() {
+  //variables for accelerometer
+  float ax, ay, az;
+  float temp;
+
+  
+  //READ JOYSTICKS
+  int yValue1 = analogRead(yInput1); // Get y-axis position of Joystick 1
+  int yValue2 = analogRead(yInput2); // Get y-axis position of Joystick 2
+
+  //READ ACCELEROMETER
+  fabo_9axis.readAccelXYZ(&ax,&ay,&az);
+  fabo_9axis.readTemperature(&temp);
+  
+  //print joystick positions
+  Serial.print("y1: "); Serial.print(yValue1); Serial.print(" y2: ");Serial.println(yValue2);
+  
+  //print currents
+  Serial.print("M1 current: "); Serial.print(md.getM1CurrentMilliamps()); Serial.print(" M2 Current: "); Serial.println(md.getM2CurrentMilliamps());
+
+  //print accelerometer values and temperature
+  Serial.print("ax: ");Serial.print(ax);
+  Serial.print(" ay: ");Serial.print(ay);
+  Serial.print(" az: ");Serial.println(az);
+  Serial.print("temp: ");Serial.println(temp);
+  
+  stopIfFault();  //Check for fault in motors
+
+//check robot orientation and set appropriate forward and backward driving speeds  
+  if(ay>0.7){                   
+    map_fwd=-80;                
+    map_bkwd=250;                               
+  }                             
+  
+  else if(ay<-0.7){
+    map_fwd=-250;
+    map_bkwd=80;
+
+  }
+  else if(ax>0.7 || ax<-0.7){
+    map_fwd=-150;
+    map_bkwd=150;
+  }
+  
+  else if(ax<-0.7){
+    map_fwd=-150;
+    map_bkwd=150;
+  }
+
+  else{
+    map_fwd=-200;
+    map_bkwd=200;
+  }
+
+//if turning, ensure speeds on both tracks are high enough to prevent robot getting stuck
+  if((yValue1 > 515 && yValue2 < 430)||(yValue1 < 420 && yValue2 > 510)){
+          map_fwd=-200;                
+          map_bkwd=200;
+    }
+
+
+
+    
+  if(yValue1 > 515)               //Check y-axis position of joystick 1 and 
+    forwardM1(yValue1,map_fwd);   //decide whether to run forward, backwards
+  else if(yValue1 < 420)          //or not move
+    backwardM1(yValue1,map_bkwd); 
+  else
+    if (ay >0.5)
+      md.setM1Speed(80);          //remain stationary while not driving
+    else if (ay <-0.5)
+      md.setM1Speed(-80);
+    else
+      md.setM1Speed(0); 
+
+  if(yValue2 > 510)               //Check y-axis position of joystick 1 and 
+    forwardM2(yValue2,map_fwd);   //decide whether to run forward, backwards
+  else if(yValue2 < 430)          //or not move
+    backwardM2(yValue2,map_bkwd); 
+  else
+     if (ay >0.5)
+      md.setM2Speed(80);          //remain stationary while not driving
+    else if (ay <-0.5)
+      md.setM2Speed(-80);
+    else
+      md.setM2Speed(0);
+  
+  delay(100); //original delay value from magnet group
+
+}
+
+
+
+
+void forwardM1(int yValue, int map_fwd){                
+    int motorSpeed = map(yValue, 507, 1023, 0, map_fwd);  // Map the joystick position to a motor speed 
+    md.setM1Speed(motorSpeed);                            // Forward motor speed values are from 0 to
+                                                          //  map_fwd, with map_fwd being the fastest
+   Serial.print(" speed1: ");Serial.println(motorSpeed);
+
+}
+
+void forwardM2(int yValue, int map_fwd){
+    int motorSpeed = map(yValue, 507, 1023, 0, map_fwd);
+    md.setM2Speed(motorSpeed);
+    Serial.print("speed2: "); Serial.println(motorSpeed); 
+   
+}
+
+void backwardM1(int yValue, int map_bkwd){
+  int motorSpeed = map(yValue, 507, 0, 0, map_bkwd);      // Backward motor speed values are from 0 to 
+  md.setM1Speed(motorSpeed);                              // map_bkwd, with map_bkwd being the fastest
+  Serial.print(" speed1: ");Serial.println(motorSpeed);
+
+}
+
+void backwardM2(int yValue, int map_bkwd){
+  int motorSpeed = map(yValue, 507, 0, 0, map_bkwd);
+  md.setM2Speed(motorSpeed);
+  Serial.print(" speed2: ");Serial.println(motorSpeed);
+
+}
+
+void stopIfFault()     
+{
+  if (md.getM1Fault())
+  {
+    Serial.println("M1 fault");
+    while(1);
+  }
+  if (md.getM2Fault())
+  {
+    Serial.println("M2 fault");
+    while(1);
+  }
+}
