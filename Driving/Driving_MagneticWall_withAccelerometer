@@ -1,12 +1,6 @@
 #include "DualVNH5019MotorShield.h"
-#include <Wire.h>
 #include <FaBo9Axis_MPU9250.h>
-
-//driving code for driving on a magnetic wall
-//assuming that a negative speed =driving forward (ie away from tether)
-//also the accelerometer should be mounted on the flat part of the chassis similar to the enclosure
-//accelerometer: yellow/white (SDA and SCL) should be connected to the digital SDA and SCL pins (directly opposite the joysticks; and the voltage supply (orange) should be 3.3V
-//copy this code into an arduino sketch and save before uploading
+#include <Wire.h>
 
 DualVNH5019MotorShield md;
 FaBo9Axis fabo_9axis;
@@ -67,23 +61,41 @@ void loop() {
   Serial.print("temp: ");Serial.println(temp);
   
   stopIfFault();  //Check for fault in motors
+
+//check robot orientation and set appropriate forward and backward driving speeds  
+  if(ay>0.7){                   
+    map_fwd=-80;                
+    map_bkwd=250;                               
+  }                             
   
-  
-  if(ay>0.7){                   //speed depends on orientation
-    map_fwd=-30;                //driving down the wall, speed should be slow such that robot does not move too quickly
-    map_bkwd=150;               //driving up the wall, speed and produced torque must be great 
-  }                             //enough to overcome magnetic and gravitational forces
   else if(ay<-0.7){
-    map_fwd=-150;
-    map_bkwd=30;
+    map_fwd=-250;
+    map_bkwd=80;
+
   }
-  else{
-    map_fwd=-100;
-    map_bkwd=100;
+  else if(ax>0.7 || ax<-0.7){
+    map_fwd=-150;
+    map_bkwd=150;
+  }
+  
+  else if(ax<-0.7){
+    map_fwd=-150;
+    map_bkwd=150;
   }
 
-  Serial.print("map fwd speed: "); Serial.println(map_fwd);
-  Serial.print("map bkwd speed: "); Serial.println(map_bkwd);
+  else{
+    map_fwd=-200;
+    map_bkwd=200;
+  }
+
+//if turning, ensure speeds on both tracks are high enough to prevent robot getting stuck
+  if((yValue1 > 515 && yValue2 < 430)||(yValue1 < 420 && yValue2 > 510)){
+          map_fwd=-200;                
+          map_bkwd=200;
+    }
+
+
+
     
   if(yValue1 > 515)               //Check y-axis position of joystick 1 and 
     forwardM1(yValue1,map_fwd);   //decide whether to run forward, backwards
@@ -94,6 +106,8 @@ void loop() {
       md.setM1Speed(80);          //remain stationary while not driving
     else if (ay <-0.5)
       md.setM1Speed(-80);
+    else
+      md.setM1Speed(0); 
 
   if(yValue2 > 510)               //Check y-axis position of joystick 1 and 
     forwardM2(yValue2,map_fwd);   //decide whether to run forward, backwards
@@ -104,9 +118,10 @@ void loop() {
       md.setM2Speed(80);          //remain stationary while not driving
     else if (ay <-0.5)
       md.setM2Speed(-80);
+    else
+      md.setM2Speed(0);
   
   delay(100); //original delay value from magnet group
-  //delay(2000); 
 
 }
 
@@ -116,7 +131,7 @@ void loop() {
 void forwardM1(int yValue, int map_fwd){                
     int motorSpeed = map(yValue, 507, 1023, 0, map_fwd);  // Map the joystick position to a motor speed 
     md.setM1Speed(motorSpeed);                            // Forward motor speed values are from 0 to
-                                                          // 400 with 400 being the fastest
+                                                          //  map_fwd, with map_fwd being the fastest
    Serial.print(" speed1: ");Serial.println(motorSpeed);
 
 }
@@ -130,7 +145,7 @@ void forwardM2(int yValue, int map_fwd){
 
 void backwardM1(int yValue, int map_bkwd){
   int motorSpeed = map(yValue, 507, 0, 0, map_bkwd);      // Backward motor speed values are from 0 to 
-  md.setM1Speed(motorSpeed);                              // -400 with -400 being the fastest
+  md.setM1Speed(motorSpeed);                              // map_bkwd, with map_bkwd being the fastest
   Serial.print(" speed1: ");Serial.println(motorSpeed);
 
 }
