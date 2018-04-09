@@ -22,12 +22,15 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.geometry(str(self.screen_width) + "x" + 
                       str(self.screen_height)) # Set GUI main window size
         self.config(bg = "#2f4f4f")
+        # self.config(bg = "#808080")
         self.output_path = os.getcwd() + '/'
         # Create GUI variables for lighting
         self.redvalue = 50
         self.greenvalue = 50
-        self.bluevalue = 50        
-        self.intensityvalue = 0      
+        self.bluevalue = 50
+        
+        # Set default intensity value to 25
+        self.intensityvalue = 25
         
         self.saved_bluevalue = self.bluevalue
         self.saved_redvalue = self.redvalue
@@ -59,8 +62,11 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.protocol("WM_DELETE_WINDOW",self._delete_window)
         
         # Create GUI-Video Feed Connection
-        self.cap = cv2.VideoCapture(0) # 0 for laptop camera, 1 for
-                                       # external webcam
+        # TODO: Get USB PORT the camera is connected on. Right now, this must be adjusted manually depending
+        # on the machine being used.
+        # Port 0 most often indicates a built-in webcam, and port 1 indicates an external USB camera.
+        self.cap = cv2.VideoCapture(1)
+        
         if self.cap:
             print("Found camera")
         else:
@@ -79,7 +85,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.menubar.add_command(label="Quit", command = self._delete_window)
         self.config(menu=self.menubar)
 #----------Red Colour Control Widget------------------------------------
-        self.red_Label = Label(self, text = "     Red:")
+        self.red_Label = Label(self, text = "     %Red:")
         self.red_Label.grid(sticky=W)
         self.red_Label.grid(row=2, column=0)  
         self.redpercentlabel = Label(self, text = "Enter") 
@@ -97,7 +103,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.redincrease.grid(row=2, column=8)        
         
 #----------Green Colour Control Widget------------------------------------     
-        self.green = Label(self, text = "     Green:")
+        self.green = Label(self, text = "     %Green:")
         self.green.grid(sticky=W)
         self.greenpercentlabel = Label(self, text = "Enter") 
         self.greenpercentlabel.grid(row=3, column=9)
@@ -114,7 +120,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.greenincrease.grid(row=3, column=8)
         
 #----------Blue Colour Control Widget------------------------------------  
-        self.blue = Label(self, text = "     Blue:")
+        self.blue = Label(self, text = "     %Blue:")
         self.blue.grid(sticky=W)
         self.bluepercentlabel = Label(self, text = "Enter") 
         self.bluepercentlabel.grid(row=4, column=9)
@@ -142,7 +148,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.intensitydecrease = Button(self, text = "-",command=self.decrease_intensityvalue)
         self.intensitydecrease.grid(row=5, column=2)
         self.intensityscale = Scale(self, from_=0, to=100, orient=HORIZONTAL, command=self.update_intensityvalue)
-        self.intensityscale.set(0)
+        self.intensityscale.set(25)
         self.intensityscale.grid(row=5, column=3)
         self.intensityincrease = Button(self, text = "+", command=self.increase_intensityvalue)
         self.intensityincrease.grid(row=5, column=8)        
@@ -183,7 +189,11 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.redpercent.delete(0,END)
         self.redpercent.insert(10,self.redvalue)
         try:
-            self.redpin.write(self.redvalue/100.0*self.intensityvalue*0.5/100)#multiplied by 0.75 of intensity so does not reach max
+            red_percentage = self.redvalue/100.0
+            total_intensity = self.intensityvalue/100.0
+
+            # Update red intensity. Expects value between 0 and 1
+            self.redpin.write(red_percentage*total_intensity)
         except:
             print("Red pin (Arduino Pin 5) INACTIVE")
             pass
@@ -205,7 +215,11 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.greenpercent.delete(0,END)
         self.greenpercent.insert(10,self.greenvalue)
         try:
-            self.greenpin.write(self.greenvalue/100.0*self.intensityvalue*0.5/100.0) #multiplied by 0.75 of intensity so does not reach max
+            green_percentage = self.greenvalue/100.0
+            total_intensity = self.intensityvalue/100.0
+
+            # Update green intensity. Expects value between 0 and 1
+            self.greenpin.write(green_percentage*total_intensity)
         except:
             print("Green pin (Arduino Pin 3) INACTIVE")
             pass
@@ -228,7 +242,11 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.bluepercent.delete(0,END)
         self.bluepercent.insert(10,self.bluevalue)
         try:
-            self.bluepin.write(self.bluevalue/100.0*self.intensityvalue*0.5/100)#multiplied by 0.75 of intensity so does not reach max
+            blue_percentage = self.bluevalue/100.0
+            total_intensity = self.intensityvalue/100.0
+
+            # Update blue intensity. Expects value between 0 and 1
+            self.bluepin.write(blue_percentage*total_intensity)
         except:
             print("Blue pin (Arduino Pin 6) INACTIVE")
             pass
@@ -251,9 +269,14 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         self.intensitypercent.delete(0,END)
         self.intensitypercent.insert(10,self.intensityvalue)
         try:
-            self.redpin.write(self.redvalue/100.0*self.intensityvalue*0.5/100.0) #multiplied by 0.75 of intensity so does not reach max
-            self.bluepin.write(self.bluevalue/100.0*self.intensityvalue*0.5/100.0) #multiplied by 0.75 of intensity so does not reach max
-            self.greenpin.write(self.greenvalue/100.0*self.intensityvalue*0.5/100.0) #multiplied by 0.75 of intensity so does not reach max
+            total_intensity = self.intensityvalue/100.0
+            red_percentage = self.redvalue/100.0;
+            blue_percentage = self.bluevalue/100.0
+            green_percentage = self.greenvalue/100.0
+            
+            self.redpin.write(red_percentage*total_intensity)
+            self.bluepin.write(blue_percentage*total_intensity)
+            self.greenpin.write(green_percentage*total_intensity)
         except:
             pass
 #-------Lighting Pre-set Control Methods-----------------------------
@@ -299,7 +322,7 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
             imgtk = ImageTk.PhotoImage(image=self.current_image)  # convert image for tkinter
             self.video_feed.imgtk = imgtk  # anchor imgtk so it does not be deleted by garbage-collector
             self.video_feed.config(image=imgtk)  # show the image
-            self.after(10, self.video_loop)  # call the same function after 30 milliseconds  
+            self.after(10, self.video_loop)  # call the same function after 10 millisecond
             
 #-------Video Feed Snapshot-----------------------------  
     def take_snapshot(self):
