@@ -315,7 +315,6 @@ class lighting_GUI(Tk): # Inherit from Tk class (main window)
         ok, frame = self.cap.read()  # read frame from video stream
         if ok:  # frame captured without any errors
             cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)  # convert colors from BGR to RGBA
-            cv2image = cv2.flip(cv2image,1)
             #cv2image = cv2.GaussianBlur(cv2image, (7,7), 0)
             #cv2image = cv2.Canny(cv2image, 50, 130)
             self.current_image = Image.fromarray(cv2image)  # convert image for PIL
